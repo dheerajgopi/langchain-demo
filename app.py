@@ -1,58 +1,13 @@
+import logging
+
 import streamlit as st
-from langchain.llms.openai import OpenAI
 from openai import AuthenticationError, RateLimitError
 
+import components
 from exceptions import NoApiKeyError
 
 
-def openAI_api_key_sidebar() -> str:
-    """
-    Add a sidebar with a text input field.
-    User can input the OpenAI API key using the text input.
-    """
-
-    return st.sidebar.text_input("OpenAI API key")
-
-def temperature_slider() -> float:
-    return st.slider(
-        label = "Temperature",
-        min_value = 0.0,
-        max_value = 2.0,
-        step = 0.25,
-        value = 0.75,
-        help = """
-            Higher temperatures add more randomness in the AI response.
-            Use lower temperature if you need stable outputs (factual outputs/classifications etc.).
-            Use higher temperatures if you want the AI to generate stories/poems, although very high temperatures
-            might make the AI generate weird responses.
-            """
-    )
-
-def generate_answer(usr_input: str, temperature: float, api_key: str) -> str:
-    """
-    Use OpenAI to generate content based on user input.
-    """
-
-    llm = OpenAI(temperature=temperature, api_key=api_key)
-    return llm(usr_input)
-
-def qa_form(api_key: str):
-    """
-    Add a form where user can provide the prompt input.
-    On submit, OpenAI will return the AI-generated content,
-    which will be displayed as a text output.
-    """
-
-    with st.form('qa-form'):
-        question_text = st.text_area("Enter your question")
-        temp = temperature_slider()
-        submit = st.form_submit_button("Submit")
-
-        if not api_key:
-            raise NoApiKeyError()
-
-        if submit:
-            st.info(generate_answer(question_text, temp, api_key))
+logging.basicConfig(level=logging.INFO)
 
 def init():
     """
@@ -62,16 +17,19 @@ def init():
     st.set_page_config(page_title="LangChain-OpenAI Demo App")
     st.title("LangChain-OpenAI Demo app")
 
-    api_key = openAI_api_key_sidebar()
+    api_key = components.openAI_api_key_sidebar()
+    model = components.openAI_text_model_dropdown()
+
     try:
-        qa_form(api_key)
+        components.prompt_form(api_key, model)
     except NoApiKeyError:
         st.warning("Please enter your OpenAI API key")
     except AuthenticationError:
         st.warning("OpenAI authentication failed. Please provide a valid API key")
     except RateLimitError:
         st.warning("You have exceeded your quota in OpenAI. Please check your OpenAI plan and billing details")
-    except Exception:
+    except Exception as e:
+        logging.error(f"Unknown error: {e}", exc_info = True)
         st.warning("Something went wrong at our end. Please re-try later")
 
 
