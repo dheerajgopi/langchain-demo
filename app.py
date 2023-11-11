@@ -13,12 +13,12 @@ def openAI_api_key_sidebar() -> str:
 
     return st.sidebar.text_input("OpenAI API key")
 
-def generate_answer(usr_input: str, api_key: str) -> str:
+def generate_answer(usr_input: str, temperature: float, api_key: str) -> str:
     """
     Use OpenAI to generate content based on user input.
     """
 
-    llm = OpenAI(temperature=0.7, api_key=api_key)
+    llm = OpenAI(temperature=temperature, api_key=api_key)
     return llm(usr_input)
 
 def qa_form(api_key: str):
@@ -30,13 +30,26 @@ def qa_form(api_key: str):
 
     with st.form('qa-form'):
         question_text = st.text_area("Enter your question")
+        temp = st.slider(
+            label = "Temperature",
+            min_value = 0.0,
+            max_value = 2.0,
+            step = 0.25,
+            value = 0.75,
+            help = """
+                Higher temperatures add more randomness in the AI response.
+                Use lower temperature if you need stable outputs (factual outputs/classifications etc.).
+                Use higher temperatures if you want the AI to generate stories/poems, although very high temperatures
+                might make the AI generate weird responses.
+                """
+        )
         submit = st.form_submit_button("Submit")
 
         if not api_key:
             raise NoApiKeyError()
 
         if submit:
-            st.info(generate_answer(question_text, api_key))
+            st.info(generate_answer(question_text, temp, api_key))
 
 def init():
     """
