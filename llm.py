@@ -9,7 +9,9 @@ CHATTY_MODELS = ["gpt-3.5-turbo"]
 
 def generate_ai_reply(usr_input: str, model: str, temperature: float, api_key: str) -> str:
     """
-    Use OpenAI to generate content based on user input.
+    Return the ai generated output based on user input.
+    `ChatOpenAI` is used for chat models (like GPT-3.5), and `OpenAI` is used for
+    pure text completion models (LLM).
     """
 
     logging.info(f"model used: {model}")
